@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dibujo de Corazón</title>
+    <style>
+        body {
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: black; /* Fondo negro */
+            position: relative; /* Para posicionar los botones */
+            font-family: Arial, sans-serif; /* Fuente más atractiva */
+        }
+        canvas {
+            border: none; /* Sin borde */
+            background-color: transparent; /* Fondo transparente */
+        }
+        #fullButton, #replayButton {
+            position: absolute; /* Posición absoluta para los botones */
+            top: 20px; /* Ajusta la posición */
+            left: 20px; /* Ajusta la posición */
+            padding: 10px 20px; /* Espaciado interno */
+            font-size: 16px; /* Tamaño de fuente */
+            color: white; /* Color del texto */
+            background-color: #FF4B4B; /* Color de fondo del botón */
+            border: none; /* Sin borde */
+            border-radius: 5px; /* Bordes redondeados */
+            cursor: pointer; /* Cambia el cursor al pasar el ratón */
+            transition: background-color 0.3s, transform 0.3s; /* Transiciones suaves */
+            display: none; /* Oculta los botones inicialmente */
+        }
+        #fullButton:hover, #replayButton:hover {
+            background-color: #FF2B2B; /* Color de fondo al pasar el ratón */
+            transform: scale(1.1); /* Aumentar tamaño al pasar el ratón */
+        }
+        #replayButton {
+            top: 60px; /* Ajusta la posición del botón Replay */
+        }
+    </style>
+</head>
+<body>
+    <canvas id="heartCanvas"></canvas>
+    <button id="fullButton" onclick="showFullImage()">FULL</button>
+    <button id="replayButton" onclick="replayAnimation()">REPLAY</button>
+    <script>
+        const canvas = document.getElementById('heartCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Ajustar el tamaño del canvas
+        canvas.width = 800; // Ancho del canvas
+        canvas.height = 700; // Aumentar la altura del canvas
+
+        // Cargar la imagen
+        const img = new Image();
+        img.src = 'pony.jpg'; // Ruta de la imagen
+
+        img.onload = () => {
+            console.log('Imagen cargada correctamente'); // Mensaje de éxito
+            drawHeart(); // Iniciar la animación una vez que la imagen se haya cargado
+        };
+
+        img.onerror = () => {
+            console.error('Error al cargar la imagen'); // Mensaje de error
+        };
+
+        // Variables para la animación
+        const heartSize = 20; // Tamaño del corazón
+        let t = 0; // Variable para la animación
+        let blurAmount = 3; // Cantidad de desenfoque inicial
+        let blurReduction = 0.1; // Cantidad de reducción de desenfoque por frame
+
+        function drawHeart() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height); // Limpiar el canvas
+
+            // Dibuja el corazón
+            ctx.save(); // Guarda el estado del contexto
+            ctx.beginPath();
+
+            for (let i = 0; i < t; i += 0.01) {
+                const x = 400 + heartSize * 16 * Math.pow(Math.sin(i), 3);
+                const y = 350 - heartSize * (13 * Math.cos(i) - 5 * Math.cos(2 * i) - 2 * Math.cos(3 * i) - Math.cos(4 * i));
+
+                if (i === 0) {
+                    ctx.moveTo(x, y); // Mover a la primera posición
+                } else {
+                    ctx.lineTo(x, y); // Dibujar líneas hacia el siguiente punto
+                }
+            }
+
+            ctx.closePath();
+            ctx.clip(); // Recorta el contexto a la forma del corazón
+
+            // Aplicar efecto de blur a la imagen
+            ctx.filter = `blur(${blurAmount}px)`; // Desenfoque
+            ctx.drawImage(img, 75, 65, 650, 650); // Dibuja la imagen
+            ctx.filter = 'none'; // Quitar el blur para el resto del dibujo
+
+            ctx.restore(); // Restaura el estado del contexto
+            ctx.strokeStyle = 'red'; // Color del corazón
+            ctx.lineWidth = 5; // Grosor de la línea
+            ctx.stroke(); // Dibuja el contorno del corazón
+
+            // Incrementar t para continuar la animación
+            if (t < Math.PI * 2) {
+                t += 0.01; // Aumentar t
+                requestAnimationFrame(drawHeart); // Continuar dibujando
+            } else {
+                // Comenzar a reducir el blur y mostrar los botones
+                reduceBlur();
+                document.getElementById('fullButton').style.display = 'block'; // Mostrar el botón FULL
+                document.getElementById('replayButton').style.display = 'block'; // Mostrar el botón REPLAY
+            }
+        }
+
+        function reduceBlur() {
+            if (blurAmount > 0) {
+                blurAmount -= blurReduction; // Reducir el desenfoque
+                if (blurAmount < 0) blurAmount = 0; // Asegurarse de que no sea negativo
+            }
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height); // Limpiar el canvas
+            ctx.save(); // Guarda el estado del contexto
+            ctx.beginPath();
+
+            // Dibuja el corazón completo
+            for (let i = 0; i < Math.PI * 2; i += 0.01) {
+                const x = 400 + heartSize * 16 * Math.pow(Math.sin(i), 3);
+                const y = 350 - heartSize * (13 * Math.cos(i) - 5 * Math.cos(2 * i) - 2 * Math.cos(3 * i) - Math.cos(4 * i));
+
+                if (i === 0) {
+                    ctx.moveTo(x, y); // Mover a la primera posición
+                } else {
+                    ctx.lineTo(x, y); // Dibujar líneas hacia el siguiente punto
+                }
+            }
+
+            ctx.closePath();
+            ctx.clip(); // Recorta el contexto a la forma del corazón
+
+            // Aplicar efecto de blur a la imagen
+            ctx.filter = `blur(${blurAmount}px)`; // Desenfoque
+            ctx.drawImage(img, 75, 65, 650, 650); // Dibuja la imagen
+            ctx.restore(); // Restaura el estado del contexto
+            ctx.strokeStyle = 'red'; // Color del corazón
+            ctx.lineWidth = 5; // Grosor de la línea
+            ctx.stroke(); // Dibuja el contorno del corazón
+
+            // Continuar la animación de reducción de blur
+            if (blurAmount > 0) {
+                requestAnimationFrame(reduceBlur); // Continuar reduciendo el blur
+            }
+        }
+
+        function showFullImage() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height); // Limpiar el canvas
+            ctx.drawImage(img, 75, 65, 650, 650); // Mostrar solo la imagen completa
+            document.getElementById('fullButton').style.display = 'none'; // Ocultar el botón FULL
+            
+            // Mover el botón REPLAY a la posición del botón FULL
+            document.getElementById('replayButton').style.top = '20px'; // Mantener la misma posición
+            document.getElementById('replayButton').style.left = '20px'; // Mantener la misma posición
+            document.getElementById('replayButton').style.display = 'block'; // Mostrar el botón REPLAY
+        }
+
+        function replayAnimation() {
+            t = 0; // Reiniciar la variable t
+            blurAmount = 3; // Reiniciar el desenfoque
+            document.getElementById('fullButton').style.display = 'none'; // Ocultar el botón FULL
+            document.getElementById('replayButton').style.display = 'none'; // Ocultar el botón REPLAY
+            drawHeart(); // Iniciar la animación de nuevo
+
+            // Resetear la posición del botón REPLAY
+            document.getElementById('replayButton').style.top = '60px'; // Restaurar la posición original
+            document.getElementById('replayButton').style.left = '20px'; // Restaurar la posición original
+        }
+
+        drawHeart(); // Iniciar la animación
+    </script>
+</body>
+</html>
